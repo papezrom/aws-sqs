@@ -50,12 +50,15 @@ def get_messages_from_queue(queue_url):
 
     return json.dumps(messages)
 
+    exit(0)
 
 def write_to_file(file_path, data):
    report = open(file_path, "a")
 
    report.write("%s\n" % data)
    report.close()
+
+   exit(0)
 
 
 if __name__ == '__main__':
