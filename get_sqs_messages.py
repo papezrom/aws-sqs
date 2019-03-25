@@ -11,6 +11,7 @@ import json
 import simplejson as json
 import boto3
 import docopt
+import sys
 
 
 sqs_client = boto3.client('sqs')
@@ -31,7 +32,7 @@ def get_messages_from_queue(queue_url):
         try:
             yield from resp['Messages']
         except KeyError:
-            return
+           return
 
         entries = [
             {'Id': msg['MessageId'], 'ReceiptHandle': msg['ReceiptHandle']}
@@ -50,15 +51,16 @@ def get_messages_from_queue(queue_url):
 
     return json.dumps(messages)
 
-    exit(0)
 
 def write_to_file(file_path, data):
-   report = open(file_path, "a")
+    try:
+        report = open(file_path, "a")
 
-   report.write("%s\n" % data)
-   report.close()
-
-   exit(0)
+        report.write("%s\n" % data)
+        report.close()
+    except KeyError:
+        print(sys.exc_info())
+        sys.exit(1)
 
 
 if __name__ == '__main__':
@@ -73,11 +75,11 @@ if __name__ == '__main__':
     for message in get_messages_from_queue(src_queue_url):
 
         data=message['Body']
-
         output.add(data)
-        print ('This is output', data)
 
         if each_exception == 'true':
+            print('This is exception body', data)
+
             write_to_file(file_path, '\n === Exeption ===')
             write_to_file(file_path, data)
 
