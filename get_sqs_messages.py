@@ -15,13 +15,15 @@ import sys
 
 
 sqs_client = boto3.client('sqs')
+group_id = "group_id"
 output = set()
 
 def get_messages_from_queue(queue_url):
 
     messages = []
 
-    while True:
+#    while True:
+    for i in range(1):
 
         resp = sqs_client.receive_message(
             QueueUrl=queue_url,
@@ -75,6 +77,7 @@ if __name__ == '__main__':
     for message in get_messages_from_queue(src_queue_url):
 
         data=message['Body']
+        print(message)
         output.add(data)
 
         if each_exception == 'true':
@@ -83,10 +86,16 @@ if __name__ == '__main__':
             write_to_file(file_path, '\n === Exeption ===')
             write_to_file(file_path, data)
 
-        sqs_client.send_message(
-            QueueUrl=dst_queue_url,
-            MessageBody=data
-        )
+        try:
+            sqs_client.send_message(
+                QueueUrl=dst_queue_url,
+                MessageBody=message['Body'],
+                MessageGroupId=group_id
+            )
+        except KeyError:
+            print(sys.exc_info())
+            sys.exit(1)
+
 
     write_to_file(file_path, '\n ======= Summary report =======')
     for each in output:
